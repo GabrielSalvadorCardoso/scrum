@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tarefas.apps.TarefasConfig',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
