@@ -3,14 +3,16 @@
 #from rest_framework.renderers import JSONRenderer
 #from rest_framework.parsers import JSONParser
 from tarefas.models import Tarefa
-from tarefas.serializers import TarefaSerializer
+from django.contrib.auth.models import User
+from tarefas.serializers import TarefaSerializer, UserSerializer
 #from rest_framework import status
 #from rest_framework.decorators import api_view
 #from rest_framework.response import Response
 #from rest_framework.views import APIView
 #from django.http import Http404
 #from rest_framework import mixins
-from rest_framework import generics
+from rest_framework import generics, permissions
+from tarefas.permissions import IsOwnerOrReadOnly
 
 # Views baseadas em funções
 """
@@ -149,7 +151,30 @@ class TarefaDetail(mixins.RetrieveModelMixin, # Provê ação de recuperação d
 class TarefaList(generics.ListCreateAPIView): # Provê ações de criação e listagem
     queryset = Tarefa.objects.all()
     serializer_class = TarefaSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly)
+
+    def perform_create(self, serializer):
+        # Sobrescrevendo 'perform_create' podemos controlar como
+        # a instancia de Tarefa será salvo. Por exemplo, podemos
+        # associar o usuario referente a esta requisição a intância
+        # de Tarefa. Agora o serializer deste modelo pode validar
+        # também este campo
+        serializer.save(criador=self.request.user)
+        # Agora todas as requisições que quiserem executar uma ação de
+        # criação, deleção ou alteração deverão ser autenticadas. Do contrário
+        # apenas terão permissão de leitura
+        permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+                              IsOwnerOrReadOnly)
 
 class TarefaDetail(generics.RetrieveUpdateDestroyAPIView): # Provê ações de recuperação, atualização e destruição
     queryset = Tarefa.objects.all()
     serializer_class = TarefaSerializer
+
+class UserList(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class UserDetail(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer

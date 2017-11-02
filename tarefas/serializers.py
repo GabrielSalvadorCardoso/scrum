@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from tarefas.models import Tarefa, TASKS_TYPES
+from django.contrib.auth.models import User
 
 # Serializer escrito explicitamente
 """
@@ -24,6 +25,21 @@ class TarefaSerializer(serializers.Serializer):
 """
 
 class TarefaSerializer(serializers.ModelSerializer):
+    # O argumento 'source' controla qual atributo será usado para ppopular
+    # o campo 'criador' na versão serializada de uma instância de Tarefa
+    criador = serializers.ReadOnlyField(source='criador.username')
+
     class Meta:
         model = Tarefa
-        fields = ('id', 'titulo', 'data_criacao', 'tipo')
+        fields = ('id', 'titulo', 'data_criacao', 'tipo', 'criador')
+
+class UserSerializer(serializers.ModelSerializer):
+    # Devemos adicionar expicitamente qualquer campo referente a um relacionamento reverso
+    # pois o serializer não faz isso automaticamente.
+    # PrimaryKeyRelatedFiels, neste caso, representa um relacionamenteo reverso
+    # que foi escrito no modelo da tarefa como "related_name='tarefas'"
+    tarefas = serializers.PrimaryKeyRelatedField(many=True, queryset=Tarefa.objects.all())
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'tarefas')
