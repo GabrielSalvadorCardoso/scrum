@@ -9,6 +9,7 @@ from tarefas.serializers import TarefaSerializer, UserSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework import viewsets
 #from rest_framework.views import APIView
 #from django.http import Http404
 #from rest_framework import mixins
@@ -157,6 +158,7 @@ class TarefaDetail(mixins.RetrieveModelMixin, # Provê ação de recuperação d
 """
 
 # Views baseadas em view genericas
+"""
 class TarefaList(generics.ListCreateAPIView): # Provê ações de criação e listagem
     queryset = Tarefa.objects.all()
     serializer_class = TarefaSerializer
@@ -187,3 +189,19 @@ class UserList(generics.ListAPIView):
 class UserDetail(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+"""
+
+# Views baseadas em ViewSets
+class UserViewSet(viewsets.ReadOnlyModelViewSet): # Apenas as operaçãoes de leitura para esta view
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class TarefaViewSet(viewsets.ModelViewSet):
+    queryset = Tarefa.objects.all()
+    serializer_class = TarefaSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly,)
+
+    def perform_create(self, serializer):
+        serializer.save(criador=self.request.user)
