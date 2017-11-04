@@ -24,6 +24,8 @@ class TarefaSerializer(serializers.Serializer):
         return instancia
 """
 
+# ModelSerializer
+"""
 class TarefaSerializer(serializers.ModelSerializer):
     # O argumento 'source' controla qual atributo será usado para ppopular
     # o campo 'criador' na versão serializada de uma instância de Tarefa
@@ -32,14 +34,35 @@ class TarefaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tarefa
         fields = ('id', 'titulo', 'data_criacao', 'tipo', 'criador')
-
+        
 class UserSerializer(serializers.ModelSerializer):
     # Devemos adicionar expicitamente qualquer campo referente a um relacionamento reverso
     # pois o serializer não faz isso automaticamente.
-    # PrimaryKeyRelatedFiels, neste caso, representa um relacionamenteo reverso
+    # PrimaryKeyRelatedField, neste caso, representa um relacionamenteo reverso
     # que foi escrito no modelo da tarefa como "related_name='tarefas'"
     tarefas = serializers.PrimaryKeyRelatedField(many=True, queryset=Tarefa.objects.all())
 
     class Meta:
         model = User
         fields = ('id', 'username', 'tarefas')
+"""
+
+class TarefaSerializer(serializers.HyperlinkedModelSerializer):
+    # Relação de chave estrangeira comum
+    criador = serializers.ReadOnlyField(source='criador.username')
+
+    class Meta:
+        # HyperlinkedModelSerializer não cria/serializa um campo 'id' automaticamente como o ModelSerializer
+        model = Tarefa
+        fields = ('url', 'id', 'titulo', 'data_criacao', 'tipo', 'criador')
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    # Relacionamento reverso com url ao invés de um 'id'
+    # Sem urls(apenas com o id) usariamos PrimaryKeyRelatedField
+    tarefas = serializers.HyperlinkedRelatedField(many=True, view_name='tarefa-detail', read_only=True)
+
+    class Meta:
+        # O campo 'url' vai referenciar a url da urlconf referenta ao modelo
+        # Por isso devemos nomear a url
+        model = User
+        fields = ('url', 'id', 'username', 'tarefas')

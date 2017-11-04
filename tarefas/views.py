@@ -6,8 +6,9 @@ from tarefas.models import Tarefa
 from django.contrib.auth.models import User
 from tarefas.serializers import TarefaSerializer, UserSerializer
 #from rest_framework import status
-#from rest_framework.decorators import api_view
-#from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
 #from rest_framework.views import APIView
 #from django.http import Http404
 #from rest_framework import mixins
@@ -71,6 +72,14 @@ def tarefa_detail(request, pk, format=None):
         return Response(status=status.HTTP_204_NO_CONTENT)
         #return HttpResponse(status=204)
 """
+
+# Qualquer requisição feita para a raiz do projeto terá uma lista de urls para as views
+@api_view(['GET'])
+def api_root(request, format=None):
+    return Response({
+        'user': reverse('user-list', request=request, format=format),
+        'tarefas': reverse('tarefa-list', request=request, format=format)
+    })
 
 # Views baseadas em classes
 """
