@@ -15,10 +15,14 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from rest_framework.schemas import get_schema_view
+
+schema_view = get_schema_view(title="SCRUM API")
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^', include('tarefas.urls'))
+    url(r'^', include('tarefas.urls')),
+    url(r'^schema/$', schema_view)
 ]
 
 urlpatterns += [
